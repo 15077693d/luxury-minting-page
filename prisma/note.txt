@@ -1,0 +1,14 @@
+1. Collection 
+- name
+- description
+- address
+- number of item 
+- list of item 
+2. Item
+- collectionId
+- address
+- status (sell/stock/MAINTENCE)
+
+
+How to set enum
+https://github.com/prisma/prisma/issues/33
