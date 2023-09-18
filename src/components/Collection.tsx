@@ -36,7 +36,7 @@ const activityItems: Output[] = [
 export default function Collection() {
   const data = useRouter();
   const [modalId, setModalId] = useState<
-    "ACTIVITY" | "STOCK" | "SELL" | "MAINTENANCE" | "COMPLETE" | null
+    Status | "ACTIVITY" | "COMPLETE" | null
   >(null);
   const closeModal = () => {
     setModalId(null);
