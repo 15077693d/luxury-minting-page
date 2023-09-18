@@ -42,6 +42,12 @@ export default function ActivityModal({
       dateTime: "12/10/2001",
       content: getActivityContent("LV001", "COMPLETE"),
     },
+    {
+      id: "134",
+      status: "COMPLETE",
+      dateTime: "12/10/2001",
+      content: getActivityContent("LV001", "COMPLETE"),
+    },
   ];
   return (
     <Transition appear show={show} as={Fragment}>

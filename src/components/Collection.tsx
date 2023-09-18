@@ -217,10 +217,13 @@ export default function Collection() {
                   </div>
                 </td>
                 <td className="hidden py-4 pl-0 pr-4 text-sm leading-6 sm:flex sm:pr-8 lg:pr-20">
+                  {/* @todo:  */}
                   <button
                     onClick={statuses[item.status].callBack}
                     className="btn btn-primary join-item"
+                    disabled
                   >
+                    {true && <span className="loading loading-spinner"></span>}{" "}
                     {statuses[item.status].buttonName}
                   </button>
                 </td>

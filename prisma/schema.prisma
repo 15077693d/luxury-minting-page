@@ -31,10 +31,30 @@ model Output {
     collection   Collection @relation(fields: [collectionId], references: [id])
     collectionId String
     status       Status     @default(value: STOCK)
+    activities   Activity[]
+}
+
+model Activity {
+    id            String       @id @default(uuid())
+    ActivityId    ActivityType @default(value: STOCK)
+    createdAt     DateTime     @default(now())
+    sellToAddress String?
+    Output        Output?      @relation(fields: [outputId], references: [id])
+    outputId      String?
 }
 
 enum Status {
     STOCK
     SELL
     MAINTENANCE
+}
+
+enum ActivityType {
+    STOCK
+    SELL
+    COMPLETE
+    MAINTENANCE
+    SECONDHANDSELL
+
+    @@map("ActivityId")
 }
