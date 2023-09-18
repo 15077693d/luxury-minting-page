@@ -1,10 +1,10 @@
-import CreateForm from "~/components/CreateForm";
+import Collections from "~/components/Collections";
 import Layout from "~/components/Layout";
 
 export default function Home() {
   return (
     <Layout>
-      <CreateForm />
+      <Collections />
     </Layout>
   );
 }

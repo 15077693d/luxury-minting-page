@@ -66,3 +66,23 @@ export type RouterInputs = inferRouterInputs<AppRouter>;
  * @example type HelloOutput = RouterOutputs['example']['hello']
  */
 export type RouterOutputs = inferRouterOutputs<AppRouter>;
+export async function callApi<T, K>(endpoint: string, body: K, method = "GET") {
+  try {
+    const response = await fetch(`${getBaseUrl()}/api/${endpoint}`, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: body ? JSON.stringify(body) : null,
+    });
+
+    if (!response.ok) {
+      throw new Error("API request failed");
+    }
+
+    return (await response.json()) as T;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}

@@ -15,6 +15,7 @@ model Collection {
     name           String
     description    String
     address        String
+    symbol         String
     numberOfOutput Int
     createdAt      DateTime @default(now())
     updatedAt      DateTime @updatedAt
@@ -26,6 +27,7 @@ model Collection {
 model Output {
     id           String     @id @default(uuid())
     address      String
+    name         String
     collection   Collection @relation(fields: [collectionId], references: [id])
     collectionId String
     status       Status     @default(value: STOCK)
