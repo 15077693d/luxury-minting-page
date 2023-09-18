@@ -1,32 +1,23 @@
 import { ArrowUpRightIcon } from "@heroicons/react/20/solid";
 import { DocumentDuplicateIcon } from "@heroicons/react/24/outline";
-import { Collection, Status } from "@prisma/client";
 import classNames from "classnames";
 import Link from "next/link";
-const stats = [
-  { name: "Number of Collection", value: "405" },
-  { name: "Number of Total Output", value: "3", unit: "" },
-];
+import { api } from "~/utils/api";
+import Address from "./Address";
 
-const statuses: { [id in Status]: string } = {
-  STOCK: "text-green-400 bg-green-400/10",
-  SELL: "text-green-400 bg-green-400/10",
-  MAINTENANCE: "text-rose-400 bg-rose-400/10",
-};
-const activityItems: (Collection & { salesVolume: string })[] = [
-  {
-    name: "LV collection 001",
-    address: "2d89...f0c8",
-    salesVolume: "10",
-    numberOfOutput: 25,
-    createdAt: new Date(12, 123, 12),
-    description: "This is ",
-    id: "123",
-    symbol: "LV01",
-    updatedAt: new Date(12, 123, 12),
-  },
-];
 export default function Collection() {
+  const { data: collectionItems } = api.collection.getAll.useQuery();
+  const stats = [
+    { name: "Number of Collection", value: collectionItems?.length },
+    {
+      name: "Number of Total Output",
+      value: collectionItems?.reduce((prev, curr) => {
+        return prev + curr.numberOfOutput;
+      }, 0),
+      unit: "",
+    },
+  ];
+
   return (
     <div>
       {" "}
@@ -114,12 +105,6 @@ export default function Collection() {
               </th>
               <th
                 scope="col"
-                className="hidden py-2 pl-0 pr-4 text-right font-semibold sm:table-cell sm:pr-8 sm:text-left lg:pr-20"
-              >
-                Sales volume
-              </th>
-              <th
-                scope="col"
                 className="hidden py-2 pl-0 pr-8 font-semibold md:table-cell lg:pr-20"
               >
                 Number of Output
@@ -133,10 +118,10 @@ export default function Collection() {
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
-            {activityItems.map((item) => (
+            {collectionItems?.map((item) => (
               <tr key={item.address}>
                 <td className="py-4 pl-4 pr-8 sm:pl-6 lg:pl-8">
-                  <Link href={`/collection/${item.address}`}>
+                  <Link href={`/collection/${item.address}?id=${item.id}`}>
                     <button className="btn flex items-center gap-x-4">
                       <div className="truncate text-sm font-medium leading-6 text-white">
                         {item.name} ({item.symbol})
@@ -147,12 +132,12 @@ export default function Collection() {
                 <td className=" py-4 pl-0 pr-4 sm:table-cell sm:pr-8">
                   <div className="flex gap-x-3">
                     <button className="font-mono text-sm leading-6 text-gray-400 flex items-center">
-                      {item.address}{" "}
+                      <Address address={item.address} />{" "}
                       <DocumentDuplicateIcon className="ml-1" width={14} />
                     </button>
                     <Link
                       target="_blank"
-                      href={`https://solscan.io/collection/${item.address}?cluster=devnet`}
+                      href={`https://solscan.io/token/${item.address}?cluster=devnet`}
                     >
                       <button className="inline-flex items-center rounded-md bg-gray-400/10 px-2 py-1 text-xs font-medium text-gray-400 ring-1 ring-inset ring-gray-400/20">
                         solcan <ArrowUpRightIcon className="ml-2" width={14} />
@@ -160,22 +145,7 @@ export default function Collection() {
                     </Link>
                   </div>
                 </td>
-                <td className="py-4 pl-0 pr-4 text-sm leading-6 sm:pr-8 lg:pr-20">
-                  <div className="flex items-center justify-end gap-x-2 sm:justify-start">
-                    <time
-                      className=" hidden text-gray-400 sm:hidden"
-                      dateTime={item.createdAt.toUTCString()}
-                    >
-                      {item.createdAt.toUTCString()}
-                    </time>
-                    <div
-                      className={classNames("flex-none rounded-full p-1")}
-                    ></div>
-                    <div className="hidden py-4 pl-0 pr-8 text-sm leading-6 text-gray-400 sm:table-cell lg:pr-20">
-                      {item.salesVolume}
-                    </div>
-                  </div>
-                </td>
+
                 <td className="hidden py-4 pl-0 pr-8 text-sm leading-6 text-gray-400 md:table-cell lg:pr-20">
                   {item.numberOfOutput}
                 </td>

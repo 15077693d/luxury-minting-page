@@ -1,63 +1,27 @@
 import { Dialog, Transition } from "@headlessui/react";
+import { Output } from "@prisma/client";
 import { Fragment } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { ITransferForm } from "~/interfaces/form";
+import { api } from "~/utils/api";
+import Button from "../button/Button";
 
 export default function TransferModal({
   closeModal,
   show,
+  output,
 }: {
   closeModal: () => void;
   show: boolean;
+  output: Output;
 }) {
-  const activity = [
-    {
-      id: 1,
-      type: "created",
-      person: { name: "Chelsea Hagon" },
-      date: "7d ago",
-      dateTime: "2023-01-23T10:32",
-    },
-    {
-      id: 2,
-      type: "edited",
-      person: { name: "Chelsea Hagon" },
-      date: "6d ago",
-      dateTime: "2023-01-23T11:03",
-    },
-    {
-      id: 3,
-      type: "sent",
-      person: { name: "Chelsea Hagon" },
-      date: "6d ago",
-      dateTime: "2023-01-23T11:24",
-    },
-    {
-      id: 4,
-      type: "commented",
-      person: {
-        name: "Chelsea Hagon",
-        imageUrl:
-          "https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-      },
-      comment:
-        "Called client, they reassured me the invoice would be paid by the 25th.",
-      date: "3d ago",
-      dateTime: "2023-01-23T15:56",
-    },
-    {
-      id: 5,
-      type: "viewed",
-      person: { name: "Alex Curren" },
-      date: "2d ago",
-      dateTime: "2023-01-24T09:12",
-    },
-    {
-      id: 6,
-      type: "paid",
-      person: { name: "Alex Curren" },
-      date: "1d ago",
-      dateTime: "2023-01-24T09:20",
-    },
-  ];
+  const { register, handleSubmit, formState } = useForm<ITransferForm>();
+  const { mutateAsync } = api.output.transfer.useMutation();
+  const context = api.useContext();
+  const onSubmit: SubmitHandler<ITransferForm> = async (data) => {
+    await mutateAsync({ outputId: output.id, ...data });
+    await context.output.invalidate();
+  };
   return (
     <Transition appear show={show} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={closeModal}>
@@ -89,20 +53,27 @@ export default function TransferModal({
                   as="h3"
                   className="text-lg font-medium leading-6 text-gray-900"
                 >
-                  Transfer
+                  Transfer ({output.name})
                 </Dialog.Title>
-                <form className="space-y-5">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                   <div className="form-control w-full bg-white">
                     <label className="label">
                       <span className="label-text">Receipt Address</span>
                     </label>
                     <input
+                      {...register("sellToAddress", { required: true })}
                       type="text"
                       placeholder="9rDFJz8qaw8XPfXtASaKCj2387nSCxYj1ZNvp5w6u"
-                      className="input input-bordered w-full bg-white"
+                      className="input input-bordered w-full bg-white text-black"
                     />
                   </div>
-                  <button className="btn btn-primary w-full">Send</button>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    isWaiting={formState.isSubmitting}
+                  >
+                    Send
+                  </Button>
                 </form>
               </Dialog.Panel>
             </Transition.Child>

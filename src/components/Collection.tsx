@@ -1,75 +1,68 @@
 import { ArrowUpRightIcon } from "@heroicons/react/20/solid";
 import { DocumentDuplicateIcon } from "@heroicons/react/24/outline";
-import { Output, Status } from "@prisma/client";
+import { type Status } from "@prisma/client";
 import classNames from "classnames";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { api } from "~/utils/api";
+import Address from "./Address";
+import Button from "./button/Button";
 import ActivityModal from "./modal/ActivityModal";
 import TransferModal from "./modal/TransferModal";
-const stats = [{ name: "Number of Output", value: "3", unit: "" }];
-
-const activityItems: Output[] = [
-  {
-    address: "2d89...f0c8",
-    name: "LV collection 001 #1",
-    collectionId: "string",
-    status: "MAINTENANCE",
-    id: "123",
-  },
-  {
-    address: "2d89...f0c8",
-    name: "LV collection 001 #1",
-    collectionId: "string",
-    status: "STOCK",
-    id: "123",
-  },
-  {
-    address: "2d89...f0c8",
-    name: "LV collection 001 #1",
-    collectionId: "string",
-    status: "SELL",
-    id: "123",
-  },
-];
 
 export default function Collection() {
   const data = useRouter();
+  const [selectedOutputId, setSelectedOutputId] = useState<string | null>(null);
+
   const [modalId, setModalId] = useState<
     Status | "ACTIVITY" | "COMPLETE" | null
   >(null);
   const closeModal = () => {
     setModalId(null);
   };
+  const { data: outputItems } = api.output.getAll.useQuery({
+    collectionId: data.query.id as string,
+  });
+  const selectedOutput = useMemo(() => {
+    return outputItems?.find((item) => item.id === selectedOutputId);
+  }, [outputItems, selectedOutputId]);
   const statuses: {
     [id in Status]: {
       className: string;
       buttonName: string;
-      callBack: () => void;
+      callBack: (outputId: string) => void;
     };
   } = {
     STOCK: {
       className: "text-gray-400 bg-gray-400/10",
       buttonName: "transfer",
-      callBack: () => {
+      callBack: (outputId: string) => {
         setModalId("SELL");
+        setSelectedOutputId(outputId);
       },
     },
     SELL: {
       className: "text-green-400 bg-green-400/10",
       buttonName: "MAINTENANCE",
-      callBack: () => {
+      callBack: (outputId: string) => {
         setModalId("MAINTENANCE");
+        setSelectedOutputId(outputId);
       },
     },
     MAINTENANCE: {
       className: "text-rose-400 bg-rose-400/10",
       buttonName: "Complete",
-      callBack: () => {
+      callBack: (outputId: string) => {
         setModalId("COMPLETE");
+        setSelectedOutputId(outputId);
       },
     },
   };
+  const stats = [
+    { name: "Number of Output", value: outputItems?.length, unit: "" },
+  ];
+
   return (
     <div>
       <header>
@@ -157,6 +150,12 @@ export default function Collection() {
               </th>
               <th
                 scope="col"
+                className="py-2 pl-0 pr-8 font-semibold sm:table-cell"
+              >
+                Owner
+              </th>
+              <th
+                scope="col"
                 className="hidden py-2 pl-0 pr-4 text-right font-semibold sm:table-cell sm:pr-8 sm:text-left lg:pr-20"
               >
                 Status
@@ -170,11 +169,12 @@ export default function Collection() {
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
-            {activityItems.map((item) => (
+            {outputItems?.map((item) => (
               <tr key={item.address}>
                 <td className="py-4 pl-4 pr-8 sm:pl-6 lg:pl-8">
                   <button
                     onClick={() => {
+                      setSelectedOutputId(item.id);
                       setModalId("ACTIVITY");
                     }}
                     className="btn flex items-center gap-x-4"
@@ -187,17 +187,29 @@ export default function Collection() {
                 <td className=" py-4 pl-0 pr-4 sm:table-cell sm:pr-8">
                   <div className="flex gap-x-3">
                     <button className="font-mono text-sm leading-6 text-gray-400 flex items-center">
-                      {item.address}{" "}
+                      <Address address={item.address} />
                       <DocumentDuplicateIcon className="ml-1" width={14} />
                     </button>
                     <Link
                       target="_blank"
-                      href={`https://solscan.io/collection/${item.address}?cluster=devnet`}
+                      href={`https://solscan.io/token/${item.address}?cluster=devnet`}
                     >
                       <button className="inline-flex items-center rounded-md bg-gray-400/10 px-2 py-1 text-xs font-medium text-gray-400 ring-1 ring-inset ring-gray-400/20">
                         solcan <ArrowUpRightIcon className="ml-2" width={14} />
                       </button>
                     </Link>
+                  </div>
+                </td>
+                <td className=" py-4 pl-0 pr-4 sm:table-cell sm:pr-8">
+                  <div className="flex gap-x-3">
+                    {item.owner ? (
+                      <button className="font-mono text-sm leading-6 text-gray-400 flex items-center">
+                        <Address address={item.owner} />
+                        <DocumentDuplicateIcon className="ml-1" width={14} />
+                      </button>
+                    ) : (
+                      "-"
+                    )}
                   </div>
                 </td>
 
@@ -218,22 +230,31 @@ export default function Collection() {
                 </td>
                 <td className="hidden py-4 pl-0 pr-4 text-sm leading-6 sm:flex sm:pr-8 lg:pr-20">
                   {/* @todo:  */}
-                  <button
-                    onClick={statuses[item.status].callBack}
-                    className="btn btn-primary join-item"
-                    disabled
+                  <Button
+                    onClick={() => statuses[item.status].callBack(item.id)}
                   >
-                    {true && <span className="loading loading-spinner"></span>}{" "}
                     {statuses[item.status].buttonName}
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <ActivityModal show={modalId === "ACTIVITY"} closeModal={closeModal} />
-      <TransferModal show={modalId === "SELL"} closeModal={closeModal} />
+      {selectedOutput && (
+        <ActivityModal
+          show={modalId === "ACTIVITY"}
+          closeModal={closeModal}
+          output={selectedOutput}
+        />
+      )}
+      {selectedOutput && (
+        <TransferModal
+          show={modalId === "SELL"}
+          closeModal={closeModal}
+          output={selectedOutput}
+        />
+      )}
     </div>
   );
 }

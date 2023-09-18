@@ -6,6 +6,7 @@ import type { SubmitHandler } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import type { CollectionInputs } from "~/interfaces/form";
 import { api } from "~/utils/api";
+import Button from "./button/Button";
 
 export default function CreateForm() {
   const { register, handleSubmit, getValues, formState } =
@@ -112,16 +113,9 @@ export default function CreateForm() {
         </div>
 
         <div className="mt-6 flex items-center justify-end gap-x-6">
-          <button
-            type="submit"
-            className={`btn btn-primary`}
-            disabled={formState.isSubmitting}
-          >
-            {formState.isSubmitting && (
-              <span className="loading loading-spinner"></span>
-            )}{" "}
+          <Button type="submit" isWaiting={formState.isSubmitting}>
             Confirm
-          </button>
+          </Button>
         </div>
       </form>
       <p className="text-sm text-gray-500"></p>

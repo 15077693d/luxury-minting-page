@@ -19,3 +19,7 @@ export type IMintProps = CollectionInputs & {
   collection?: string;
   start?: number;
 };
+
+export type ITransferForm = {
+  sellToAddress: string;
+};

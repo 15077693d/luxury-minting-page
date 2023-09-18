@@ -1,54 +1,39 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { CheckCircleIcon } from "@heroicons/react/20/solid";
-import { Status } from "@prisma/client";
+import { Output } from "@prisma/client";
 import classNames from "classnames";
-import { Fragment } from "react";
+import { Fragment, useMemo } from "react";
+import { shortenAddress } from "~/utils/address";
+import { api } from "~/utils/api";
 import { getActivityContent } from "~/utils/nft";
 
 export default function ActivityModal({
   closeModal,
   show,
+  output,
 }: {
   closeModal: () => void;
   show: boolean;
+  output: Output;
 }) {
-  const activity: {
-    id: string;
-    status: Status | "COMPLETE";
-    dateTime: string;
-    content: string;
-  }[] = [
-    {
-      id: "123",
-      status: "STOCK",
-      dateTime: "12/10/2001",
-      content: getActivityContent("LV001", "STOCK"),
-    },
-    {
-      id: "134",
-      status: "SELL",
-      dateTime: "12/10/2001",
-      content: getActivityContent("LV001", "SELL", "0x123"),
-    },
-    {
-      id: "134",
-      status: "MAINTENANCE",
-      dateTime: "12/10/2001",
-      content: getActivityContent("LV001", "MAINTENANCE"),
-    },
-    {
-      id: "134",
-      status: "COMPLETE",
-      dateTime: "12/10/2001",
-      content: getActivityContent("LV001", "COMPLETE"),
-    },
-    {
-      id: "134",
-      status: "COMPLETE",
-      dateTime: "12/10/2001",
-      content: getActivityContent("LV001", "COMPLETE"),
-    },
-  ];
+  const { data: activitiesData } = api.output.getActivities.useQuery({
+    outputId: output.id,
+  });
+  const activities = useMemo(() => {
+    return activitiesData?.map((activity) => {
+      return {
+        ...activity,
+        createdAt: activity.createdAt.toUTCString(),
+        content: getActivityContent(
+          output.name,
+          activity.ActivityId,
+          shortenAddress(activity.sellToAddress ?? ""),
+        ),
+      };
+    });
+  }, [activitiesData, output.name, output.status]);
+
+  console.log(activities);
   return (
     <Transition appear show={show} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={closeModal}>
@@ -75,7 +60,7 @@ export default function ActivityModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                 <Dialog.Title
                   as="h3"
                   className="text-lg font-medium leading-6 text-gray-900"
@@ -84,14 +69,14 @@ export default function ActivityModal({
                 </Dialog.Title>
                 <div>
                   <ul role="list" className="mt-6 space-y-6">
-                    {activity.map((activityItem, activityItemIdx) => (
+                    {activities?.map((activityItem, activityItemIdx) => (
                       <li
                         key={activityItem.id}
                         className="relative flex gap-x-4"
                       >
                         <div
                           className={classNames(
-                            activityItemIdx === activity.length - 1
+                            activityItemIdx === activities.length - 1
                               ? "h-6"
                               : "-bottom-6",
                             "absolute left-0 top-0 flex w-6 justify-center",
@@ -102,7 +87,7 @@ export default function ActivityModal({
                         {
                           <>
                             <div className="relative flex h-6 w-6 flex-none items-center justify-center bg-white">
-                              {activityItem.status === "SELL" ? (
+                              {activityItem.ActivityId === "SELL" ? (
                                 <CheckCircleIcon
                                   className="h-6 w-6 text-indigo-600"
                                   aria-hidden="true"
@@ -111,11 +96,11 @@ export default function ActivityModal({
                                 <div
                                   className={classNames(
                                     "h-1.5 w-1.5 rounded-full ring-1 ring-gray-300",
-                                    activityItem.status === "STOCK" &&
+                                    activityItem.ActivityId === "STOCK" &&
                                       "bg-gray-100",
-                                    activityItem.status === "MAINTENANCE" &&
+                                    activityItem.ActivityId === "MAINTENANCE" &&
                                       "bg-rose-100",
-                                    activityItem.status === "COMPLETE" &&
+                                    activityItem.ActivityId === "COMPLETE" &&
                                       "bg-green-100",
                                   )}
                                 />
@@ -127,10 +112,10 @@ export default function ActivityModal({
                               </span>{" "}
                             </p>
                             <time
-                              dateTime={activityItem.dateTime}
+                              dateTime={activityItem.createdAt}
                               className="flex-none py-0.5 text-xs leading-5 text-gray-500"
                             >
-                              {activityItem.dateTime}
+                              {activityItem.createdAt}
                             </time>
                           </>
                         }

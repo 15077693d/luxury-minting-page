@@ -1,13 +1,13 @@
 // pages/api.js
 
-import type { NextApiRequest, NextApiResponse } from "next";
-import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import {
   Metaplex,
-  keypairIdentity,
   bundlrStorage,
+  keypairIdentity,
 } from "@metaplex-foundation/js";
 import { base58 } from "@metaplex-foundation/umi/serializers";
+import { Connection, Keypair, PublicKey } from "@solana/web3.js";
+import type { NextApiRequest, NextApiResponse } from "next";
 import type { IData, IMintProps, IOutput } from "~/interfaces/form";
 
 const secretKey = base58.serialize(process.env.SECRET_KEY ?? "");

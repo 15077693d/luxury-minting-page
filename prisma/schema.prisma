@@ -27,6 +27,7 @@ model Collection {
 model Output {
     id           String     @id @default(uuid())
     address      String
+    owner        String?
     name         String
     collection   Collection @relation(fields: [collectionId], references: [id])
     collectionId String
@@ -39,8 +40,8 @@ model Activity {
     ActivityId    ActivityType @default(value: STOCK)
     createdAt     DateTime     @default(now())
     sellToAddress String?
-    Output        Output?      @relation(fields: [outputId], references: [id])
-    outputId      String?
+    Output        Output       @relation(fields: [outputId], references: [id])
+    outputId      String
 }
 
 enum Status {

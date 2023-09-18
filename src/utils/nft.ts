@@ -1,4 +1,4 @@
-import { Status } from "@prisma/client";
+import { ActivityType } from "@prisma/client";
 import type { IData, IMintProps } from "~/interfaces/form";
 import { callApi } from "./api";
 
@@ -7,7 +7,7 @@ export const mintNFT = async (body: IMintProps) => {
 };
 export const getActivityContent = (
   name: string,
-  status: Status | "COMPLETE",
+  status: ActivityType,
   sellToAddress?: string,
 ) => {
   switch (status) {
