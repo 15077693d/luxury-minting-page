@@ -12,9 +12,12 @@ import ActivityModal from "./modal/ActivityModal";
 import TransferModal from "./modal/TransferModal";
 
 export default function Collection() {
+  const { mutateAsync: maintain } = api.output.maintain.useMutation();
+  const { mutateAsync: complete } = api.output.complete.useMutation();
+  const context = api.useContext();
+
   const data = useRouter();
   const [selectedOutputId, setSelectedOutputId] = useState<string | null>(null);
-
   const [modalId, setModalId] = useState<
     Status | "ACTIVITY" | "COMPLETE" | null
   >(null);
@@ -46,7 +49,13 @@ export default function Collection() {
       className: "text-green-400 bg-green-400/10",
       buttonName: "MAINTENANCE",
       callBack: (outputId: string) => {
-        setModalId("MAINTENANCE");
+        void maintain({
+          outputId,
+        })
+          .then((result) => {
+            void context.output.invalidate();
+          })
+          .catch((error) => console.log(error));
         setSelectedOutputId(outputId);
       },
     },
@@ -54,7 +63,14 @@ export default function Collection() {
       className: "text-rose-400 bg-rose-400/10",
       buttonName: "Complete",
       callBack: (outputId: string) => {
-        setModalId("COMPLETE");
+        void complete({
+          owner: selectedOutput?.owner ?? null,
+          outputId,
+        })
+          .then((result) => {
+            void context.output.invalidate();
+          })
+          .catch((error) => console.log(error));
         setSelectedOutputId(outputId);
       },
     },
@@ -229,7 +245,6 @@ export default function Collection() {
                   </div>
                 </td>
                 <td className="hidden py-4 pl-0 pr-4 text-sm leading-6 sm:flex sm:pr-8 lg:pr-20">
-                  {/* @todo:  */}
                   <Button
                     onClick={() => statuses[item.status].callBack(item.id)}
                   >

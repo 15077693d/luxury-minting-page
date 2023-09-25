@@ -31,9 +31,8 @@ export default function ActivityModal({
         ),
       };
     });
-  }, [activitiesData, output.name, output.status]);
+  }, [activitiesData, output.name]);
 
-  console.log(activities);
   return (
     <Transition appear show={show} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={closeModal}>

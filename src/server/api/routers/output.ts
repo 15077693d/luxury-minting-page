@@ -46,11 +46,11 @@ export const outputRouter = createTRPCRouter({
         outputId: z.string(),
       }),
     )
-    .mutation(({ ctx, input }) => {
-      void ctx.db.activity.create({
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.activity.create({
         data: { ActivityId: "MAINTENANCE", ...input },
       });
-      void ctx.db.output.update({
+      await ctx.db.output.update({
         where: { id: input.outputId },
         data: {
           status: "MAINTENANCE",
@@ -64,19 +64,19 @@ export const outputRouter = createTRPCRouter({
         outputId: z.string(),
       }),
     )
-    .mutation(({ ctx, input }) => {
-      void ctx.db.activity.create({
-        data: { ActivityId: "COMPLETE", ...input },
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.activity.create({
+        data: { ActivityId: "COMPLETE", outputId: input.outputId },
       });
       if (input.owner === null) {
-        void ctx.db.output.update({
+        await ctx.db.output.update({
           where: { id: input.outputId },
           data: {
             status: "STOCK",
           },
         });
       } else {
-        void ctx.db.output.update({
+        await ctx.db.output.update({
           where: { id: input.outputId },
           data: {
             status: "SELL",
