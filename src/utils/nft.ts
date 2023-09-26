@@ -1,9 +1,22 @@
 import { ActivityType } from "@prisma/client";
-import type { IData, IMintProps } from "~/interfaces/form";
+import type {
+  IData,
+  IMintProps,
+  ITransferAPIProps,
+  ITransferReturn,
+} from "~/interfaces/form";
 import { callApi } from "./api";
 
 export const mintNFT = async (body: IMintProps) => {
   return await callApi<IData, IMintProps>("mint", body, "POST");
+};
+
+export const transferNFT = async (body: ITransferAPIProps) => {
+  return await callApi<ITransferReturn, ITransferAPIProps>(
+    "transfer",
+    body,
+    "POST",
+  );
 };
 export const getActivityContent = (
   name: string,

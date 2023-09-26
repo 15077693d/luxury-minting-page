@@ -15,7 +15,6 @@ export default function Collection() {
   const { mutateAsync: maintain } = api.output.maintain.useMutation();
   const { mutateAsync: complete } = api.output.complete.useMutation();
   const context = api.useContext();
-
   const data = useRouter();
   const [selectedOutputId, setSelectedOutputId] = useState<string | null>(null);
   const [modalId, setModalId] = useState<
@@ -185,74 +184,91 @@ export default function Collection() {
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
-            {outputItems?.map((item) => (
-              <tr key={item.address}>
-                <td className="py-4 pl-4 pr-8 sm:pl-6 lg:pl-8">
-                  <button
-                    onClick={() => {
-                      setSelectedOutputId(item.id);
-                      setModalId("ACTIVITY");
-                    }}
-                    className="btn flex items-center gap-x-4"
-                  >
-                    <div className="truncate text-sm font-medium leading-6 text-white">
-                      {item.name}
-                    </div>
-                  </button>
-                </td>
-                <td className=" py-4 pl-0 pr-4 sm:table-cell sm:pr-8">
-                  <div className="flex gap-x-3">
-                    <button className="font-mono text-sm leading-6 text-gray-400 flex items-center">
-                      <Address address={item.address} />
-                      <DocumentDuplicateIcon className="ml-1" width={14} />
-                    </button>
-                    <Link
-                      target="_blank"
-                      href={`https://solscan.io/token/${item.address}?cluster=devnet`}
+            {outputItems
+              ?.sort((a, b) => {
+                // Convert names to lowercase for case-insensitive sorting
+                const nameA = a.name.toLowerCase();
+                const nameB = b.name.toLowerCase();
+
+                // Compare the names
+                if (nameA < nameB) {
+                  return -1;
+                }
+                if (nameA > nameB) {
+                  return 1;
+                }
+                // Names are equal
+                return 0;
+              })
+              ?.map((item) => (
+                <tr key={item.address}>
+                  <td className="py-4 pl-4 pr-8 sm:pl-6 lg:pl-8">
+                    <button
+                      onClick={() => {
+                        setSelectedOutputId(item.id);
+                        setModalId("ACTIVITY");
+                      }}
+                      className="btn flex items-center gap-x-4"
                     >
-                      <button className="inline-flex items-center rounded-md bg-gray-400/10 px-2 py-1 text-xs font-medium text-gray-400 ring-1 ring-inset ring-gray-400/20">
-                        solcan <ArrowUpRightIcon className="ml-2" width={14} />
-                      </button>
-                    </Link>
-                  </div>
-                </td>
-                <td className=" py-4 pl-0 pr-4 sm:table-cell sm:pr-8">
-                  <div className="flex gap-x-3">
-                    {item.owner ? (
+                      <div className="truncate text-sm font-medium leading-6 text-white">
+                        {item.name}
+                      </div>
+                    </button>
+                  </td>
+                  <td className=" py-4 pl-0 pr-4 sm:table-cell sm:pr-8">
+                    <div className="flex gap-x-3">
                       <button className="font-mono text-sm leading-6 text-gray-400 flex items-center">
-                        <Address address={item.owner} />
+                        <Address address={item.address} />
                         <DocumentDuplicateIcon className="ml-1" width={14} />
                       </button>
-                    ) : (
-                      "-"
-                    )}
-                  </div>
-                </td>
-
-                <td className="py-4 pl-0 pr-4 text-sm leading-6 sm:pr-8 lg:pr-20">
-                  <div className="hidden sm:flex items-center justify-end gap-x-2 sm:justify-start">
-                    <div
-                      className={classNames(
-                        statuses[item.status].className,
-                        "flex-none rounded-full p-1",
+                      <Link
+                        target="_blank"
+                        href={`https://solscan.io/token/${item.address}?cluster=devnet`}
+                      >
+                        <button className="inline-flex items-center rounded-md bg-gray-400/10 px-2 py-1 text-xs font-medium text-gray-400 ring-1 ring-inset ring-gray-400/20">
+                          solcan{" "}
+                          <ArrowUpRightIcon className="ml-2" width={14} />
+                        </button>
+                      </Link>
+                    </div>
+                  </td>
+                  <td className=" py-4 pl-0 pr-4 sm:table-cell sm:pr-8">
+                    <div className="flex gap-x-3">
+                      {item.owner ? (
+                        <button className="font-mono text-sm leading-6 text-gray-400 flex items-center">
+                          <Address address={item.owner} />
+                          <DocumentDuplicateIcon className="ml-1" width={14} />
+                        </button>
+                      ) : (
+                        "-"
                       )}
+                    </div>
+                  </td>
+
+                  <td className="py-4 pl-0 pr-4 text-sm leading-6 sm:pr-8 lg:pr-20">
+                    <div className="hidden sm:flex items-center justify-end gap-x-2 sm:justify-start">
+                      <div
+                        className={classNames(
+                          statuses[item.status].className,
+                          "flex-none rounded-full p-1",
+                        )}
+                      >
+                        <div className="h-1.5 w-1.5 rounded-full bg-current" />
+                      </div>
+                      <div className="hidden text-white sm:block ">
+                        {item.status}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="hidden py-4 pl-0 pr-4 text-sm leading-6 sm:flex sm:pr-8 lg:pr-20">
+                    <Button
+                      onClick={() => statuses[item.status].callBack(item.id)}
                     >
-                      <div className="h-1.5 w-1.5 rounded-full bg-current" />
-                    </div>
-                    <div className="hidden text-white sm:block ">
-                      {item.status}
-                    </div>
-                  </div>
-                </td>
-                <td className="hidden py-4 pl-0 pr-4 text-sm leading-6 sm:flex sm:pr-8 lg:pr-20">
-                  <Button
-                    onClick={() => statuses[item.status].callBack(item.id)}
-                  >
-                    {statuses[item.status].buttonName}
-                  </Button>
-                </td>
-              </tr>
-            ))}
+                      {statuses[item.status].buttonName}
+                    </Button>
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>

@@ -1,8 +1,10 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { Output } from "@prisma/client";
-import { Fragment } from "react";
+import Link from "next/link";
+import { Fragment, useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { ITransferForm } from "~/interfaces/form";
+import { shortenAddress } from "~/utils/address";
 import { api } from "~/utils/api";
 import Button from "../button/Button";
 
@@ -16,12 +18,21 @@ export default function TransferModal({
   output: Output;
 }) {
   const { register, handleSubmit, formState } = useForm<ITransferForm>();
+  const [hash, setHash] = useState<null | string>(null);
   const { mutateAsync } = api.output.transfer.useMutation();
   const context = api.useContext();
   const onSubmit: SubmitHandler<ITransferForm> = async (data) => {
-    await mutateAsync({ outputId: output.id, ...data });
+    const newHash = await mutateAsync({
+      outputAddress: output.address,
+      outputId: output.id,
+      ...data,
+    });
+    setHash(newHash);
     await context.output.invalidate();
   };
+  useEffect(() => {
+    setHash(null);
+  }, [output.id]);
   return (
     <Transition appear show={show} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={closeModal}>
@@ -55,26 +66,44 @@ export default function TransferModal({
                 >
                   Transfer ({output.name})
                 </Dialog.Title>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-                  <div className="form-control w-full bg-white">
-                    <label className="label">
-                      <span className="label-text">Receipt Address</span>
-                    </label>
-                    <input
-                      {...register("sellToAddress", { required: true })}
-                      type="text"
-                      placeholder="9rDFJz8qaw8XPfXtASaKCj2387nSCxYj1ZNvp5w6u"
-                      className="input input-bordered w-full bg-white text-black"
-                    />
+
+                {hash ? (
+                  <div className="mt-5 space-y-5 text-black opacity-90">
+                    <span>
+                      The transfer has been completed successfully. 🎉
+                    </span>
+                    <Link
+                      target="_blank"
+                      href={`https://solscan.io/tx/${hash}?cluster=devnet`}
+                    >
+                      <button className="mt-4 p-4 btn-primary w-full ">
+                        <span>Check the TX in Solcan</span> (
+                        {shortenAddress(hash)})
+                      </button>
+                    </Link>
                   </div>
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    isWaiting={formState.isSubmitting}
-                  >
-                    Send
-                  </Button>
-                </form>
+                ) : (
+                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                    <div className="form-control w-full bg-white">
+                      <label className="label">
+                        <span className="label-text">Receipt Address</span>
+                      </label>
+                      <input
+                        {...register("sellToAddress", { required: true })}
+                        type="text"
+                        placeholder="9rDFJz8qaw8XPfXtASaKCj2387nSCxYj1ZNvp5w6u"
+                        className="input input-bordered w-full bg-white text-black"
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      isWaiting={formState.isSubmitting}
+                    >
+                      Send
+                    </Button>
+                  </form>
+                )}
               </Dialog.Panel>
             </Transition.Child>
           </div>

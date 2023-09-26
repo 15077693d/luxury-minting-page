@@ -15,7 +15,11 @@ export default function Button({
     <button
       type={type}
       onClick={onClick}
-      className={classNames("btn btn-primary ", className)}
+      className={classNames(
+        "btn btn-primary ",
+        className,
+        isWaiting && "text-[white!important]",
+      )}
       disabled={isWaiting}
     >
       {isWaiting && <span className="loading loading-spinner"></span>}{" "}

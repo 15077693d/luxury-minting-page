@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { transferNFT } from "~/utils/nft";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
 export const outputRouter = createTRPCRouter({
@@ -24,21 +25,34 @@ export const outputRouter = createTRPCRouter({
     .input(
       z.object({
         outputId: z.string(),
+        outputAddress: z.string(),
         sellToAddress: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      await ctx.db.activity.create({
-        data: { ActivityId: "SELL", ...input },
+      const result = await transferNFT({
+        nftAddress: input.outputAddress,
+        toOwner: input.sellToAddress,
       });
-      // @todo transfer nft in blockchain
-      await ctx.db.output.update({
-        where: { id: input.outputId },
-        data: {
-          status: "SELL",
-          owner: input.sellToAddress,
-        },
-      });
+      if (result.response.signature) {
+        await ctx.db.activity.create({
+          data: {
+            ActivityId: "SELL",
+            outputId: input.outputId,
+            sellToAddress: input.sellToAddress,
+          },
+        });
+        // @todo transfer nft in blockchain
+        await ctx.db.output.update({
+          where: { id: input.outputId },
+          data: {
+            status: "SELL",
+            owner: input.sellToAddress,
+          },
+        });
+        return result.response.signature;
+      }
+      return null;
     }),
   maintain: publicProcedure
     .input(
